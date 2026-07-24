@@ -1,0 +1,39 @@
+# Dependencies
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+venv/
+.venv/
+env/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Vercel
+.vercel/
+
+# Node
+node_modules/
+package-lock.json
+
+# Other projects
+eml-compressor/
