@@ -8,12 +8,16 @@ import re
 import time
 import json
 from collections import defaultdict
+from pathlib import Path
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
 
 from groq import Groq
+
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 app = FastAPI(title="Email Triage AI API", version="1.0.0")
 
