@@ -95,6 +95,14 @@
     loadingOverlay: $('#loading-overlay'),
     loaderSubjectCount: $('#loader-subject-count'),
     toastContainer: $('#toast-container'),
+    tabAnalyze: $('#tab-analyze'),
+    tabGenerate: $('#tab-generate'),
+    analyzeContent: $('#analyze-content'),
+    generateContent: $('#generate-content'),
+    genTopic: $('#gen-topic'),
+    genCount: $('#gen-count'),
+    genTone: $('#gen-tone'),
+    btnGenerate: $('#btn-generate'),
   };
 
   /* =========================================================================
@@ -559,6 +567,70 @@
   }
 
   /* =========================================================================
+     Mode Tabs
+     ========================================================================= */
+  function switchMode(mode) {
+    dom.tabAnalyze.classList.toggle('active', mode === 'analyze');
+    dom.tabGenerate.classList.toggle('active', mode === 'generate');
+    dom.tabAnalyze.setAttribute('aria-selected', mode === 'analyze');
+    dom.tabGenerate.setAttribute('aria-selected', mode === 'generate');
+    dom.analyzeContent.style.display = mode === 'analyze' ? '' : 'none';
+    dom.generateContent.style.display = mode === 'generate' ? '' : 'none';
+  }
+
+  /* =========================================================================
+     Generate Subjects
+     ========================================================================= */
+  async function generateSubjects() {
+    var topic = dom.genTopic.value.trim();
+    if (!topic) {
+      showToast('Please enter a topic.', 'warning');
+      dom.genTopic.focus();
+      return;
+    }
+
+    var count = parseInt(dom.genCount.value, 10) || 5;
+    var tone = dom.genTone.value;
+
+    dom.btnGenerate.disabled = true;
+    dom.btnGenerate.textContent = 'Generating...';
+
+    try {
+      var response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic: topic, count: count, tone: tone }),
+      });
+
+      var result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.detail || result.error || 'Generation failed');
+      }
+
+      var subjects = result.subjects || [];
+      if (subjects.length === 0) {
+        showToast('No subjects generated. Try a different topic.', 'warning');
+        return;
+      }
+
+      dom.subjectInput.value = subjects.join('\n');
+      updateInputCount();
+      localStorage.setItem(STORAGE_KEYS.subjects, dom.subjectInput.value);
+      showToast('Generated ' + subjects.length + ' subject' + (subjects.length !== 1 ? 's' : ''), 'success');
+
+      // Switch to analyze mode
+      switchMode('analyze');
+      dom.btnAnalyze.focus();
+    } catch (err) {
+      showToast(err.message || 'Generation failed.', 'error');
+    } finally {
+      dom.btnGenerate.disabled = false;
+      dom.btnGenerate.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><path d="M6 6l12 12M18 6l-12 12"/></svg> Generate Subjects';
+    }
+  }
+
+  /* =========================================================================
      Restore from localStorage
      ========================================================================= */
   function restoreState() {
@@ -597,6 +669,19 @@
     dom.btnAnalyze.addEventListener('click', analyzeSubjects);
     dom.btnClear.addEventListener('click', clearAll);
     dom.btnExample.addEventListener('click', loadExample);
+
+    // Mode tabs
+    dom.tabAnalyze.addEventListener('click', function () { switchMode('analyze'); });
+    dom.tabGenerate.addEventListener('click', function () { switchMode('generate'); });
+
+    // Generate
+    dom.btnGenerate.addEventListener('click', generateSubjects);
+    dom.genTopic.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        generateSubjects();
+      }
+    });
 
     // Import buttons
     dom.btnImportTxt.addEventListener('click', function () { triggerFileImport('txt'); });

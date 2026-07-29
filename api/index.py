@@ -63,6 +63,12 @@ class AnalyzeRequest(BaseModel):
         return cleaned
 
 
+class GenerateRequest(BaseModel):
+    topic: str = Field(..., min_length=1, max_length=200)
+    count: int = Field(default=5, ge=1, le=20)
+    tone: str = Field(default="professional")
+
+
 _TAG_RE = re.compile(r"<[^>]+>")
 
 
@@ -194,6 +200,59 @@ async def analyze(request: Request, body: AnalyzeRequest):
     result["count"] = len(subjects)
 
     return result
+
+
+@app.post("/api/generate")
+async def generate(request: Request, body: GenerateRequest):
+    client_ip = request.client.host if request.client else "unknown"
+    if not check_rate_limit(client_ip):
+        raise HTTPException(status_code=429, detail="Too many requests.")
+
+    if client is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Groq API key is not configured. Please set GROQ_API_KEY.",
+        )
+
+    prompt = f"""Generate {body.count} email subject lines about "{body.topic}" with a {body.tone} tone.
+Return ONLY a valid JSON array of strings, no markdown fences, no explanation.
+Example format: ["Subject 1", "Subject 2", "Subject 3"]"""
+
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": "You are an email subject line generator. Return only valid JSON arrays."},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.7,
+            max_tokens=1000,
+        )
+
+        output_text = response.choices[0].message.content.strip()
+
+        if output_text.startswith("```"):
+            lines = output_text.split("\n")
+            if lines[-1].strip() == "```":
+                lines = lines[1:-1]
+            elif lines[0].strip().startswith("```"):
+                lines = lines[1:]
+            output_text = "\n".join(lines).strip()
+
+        subjects = json.loads(output_text)
+
+        if not isinstance(subjects, list):
+            raise ValueError("Response is not an array")
+
+        subjects = [str(s).strip() for s in subjects if s]
+
+        return {"subjects": subjects}
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Generation error: {str(e)}",
+        )
 
 
 @app.get("/api/health")

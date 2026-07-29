@@ -56,6 +56,20 @@
         <span class="subject-count" id="input-count">0 subjects</span>
       </div>
 
+      <!-- Mode Tabs -->
+      <div class="mode-tabs" role="tablist">
+        <button class="mode-tab active" role="tab" aria-selected="true" data-mode="analyze" id="tab-analyze">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Analyze
+        </button>
+        <button class="mode-tab" role="tab" aria-selected="false" data-mode="generate" id="tab-generate">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><path d="M6 6l12 12M18 6l-12 12"/></svg>
+          Generate
+        </button>
+      </div>
+
+      <!-- Analyze Mode -->
+      <div id="analyze-content">
       <!-- Drop Zone -->
       <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="Drop files here or click to import">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -107,6 +121,38 @@
 
       <div class="shortcut-hint">
         <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to analyze
+      </div>
+      </div>
+
+      <!-- Generate Mode -->
+      <div id="generate-content" style="display:none;">
+        <div class="generate-form">
+          <div class="gen-field">
+            <label for="gen-topic">Topic</label>
+            <input type="text" id="gen-topic" placeholder="e.g. meeting reminders, invoices, promotions..." autocomplete="off">
+          </div>
+          <div class="gen-row">
+            <div class="gen-field gen-count-field">
+              <label for="gen-count">Count</label>
+              <input type="number" id="gen-count" value="5" min="1" max="20">
+            </div>
+            <div class="gen-field gen-tone-field">
+              <label for="gen-tone">Tone</label>
+              <select id="gen-tone">
+                <option value="professional">Professional</option>
+                <option value="casual">Casual</option>
+                <option value="urgent">Urgent</option>
+                <option value="friendly">Friendly</option>
+                <option value="formal">Formal</option>
+              </select>
+            </div>
+          </div>
+          <button type="button" id="btn-generate" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><path d="M6 6l12 12M18 6l-12 12"/></svg>
+            Generate Subjects
+          </button>
+          <p class="gen-hint">Generated subjects will appear below. Then switch to Analyze to categorize them.</p>
+        </div>
       </div>
     </section>
 
