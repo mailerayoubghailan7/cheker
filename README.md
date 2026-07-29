@@ -40,7 +40,7 @@ cd email-subject-triage-ai
 In Vercel dashboard: **Settings > Environment Variables**
 
 ```
-OPENAI_API_KEY=sk-your-key-here
+GROQ_API_KEY=gsk_your-key-here
 ```
 
 ### 3. Deploy
