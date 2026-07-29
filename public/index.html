@@ -3,16 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Email Subject Triage AI - Analyze and organize inbox subjects with AI">
-  <title>Email Subject Triage AI</title>
+  <meta name="description" content="Email Subject Generator - Generate realistic email subjects with AI">
+  <title>Email Subject Generator</title>
   <link rel="stylesheet" href="/style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📬</text></svg>">
 </head>
 <body>
-  <!-- Toast Container -->
   <div id="toast-container" aria-live="polite"></div>
 
-  <!-- Header -->
   <header class="header">
     <div class="header-left">
       <div class="logo">
@@ -30,8 +28,8 @@
           </defs>
         </svg>
         <div class="logo-text">
-          <h1>Email Subject Triage AI</h1>
-          <p class="subtitle">Analyze and organize inbox subjects with AI.</p>
+          <h1>Email Subject Generator</h1>
+          <p class="subtitle">Generate realistic email subjects with AI</p>
         </div>
       </div>
     </div>
@@ -47,218 +45,94 @@
     </div>
   </header>
 
-  <!-- Main Content -->
   <main class="main">
-    <!-- LEFT PANEL: Input -->
-    <section class="panel input-panel glass">
+    <!-- Left: Generator Settings -->
+    <section class="panel glass">
       <div class="panel-header">
-        <h2>Inbox Subjects</h2>
-        <span class="subject-count" id="input-count">0 subjects</span>
+        <h2>Generator Settings</h2>
       </div>
 
-      <!-- Mode Tabs -->
-      <div class="mode-tabs" role="tablist">
-        <button class="mode-tab active" role="tab" aria-selected="true" data-mode="analyze" id="tab-analyze">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          Analyze
-        </button>
-        <button class="mode-tab" role="tab" aria-selected="false" data-mode="generate" id="tab-generate">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><path d="M6 6l12 12M18 6l-12 12"/></svg>
-          Generate
-        </button>
-      </div>
-
-      <!-- Analyze Mode -->
-      <div id="analyze-content">
-      <!-- Drop Zone -->
-      <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="Drop files here or click to import">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-        </svg>
-        <span>Drop TXT, CSV, or JSON here</span>
-        <span class="drop-hint">or use the buttons below</span>
-        <input type="file" id="file-input" accept=".txt,.csv,.json" multiple hidden>
-      </div>
-
-      <textarea
-        id="subject-input"
-        class="subject-textarea"
-        placeholder="Paste email subjects here, one per line...&#10;&#10;Weekly Report&#10;Invoice #5521&#10;Security Alert&#10;Password Reset&#10;Your Amazon Order&#10;Meeting Tomorrow&#10;GitHub Notification&#10;New Login&#10;Newsletter&#10;Promotion&#10;Package Delivered"
-        rows="16"
-        aria-label="Email subjects input"
-      ></textarea>
-
-      <div class="input-actions">
-        <div class="button-group primary-actions">
-          <button type="button" id="btn-analyze" class="btn btn-primary">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            Analyze Inbox
-          </button>
-          <button type="button" id="btn-clear" class="btn btn-ghost">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            Clear
-          </button>
+      <div class="gen-form">
+        <div class="gen-field">
+          <label for="gen-topic">Topic</label>
+          <input type="text" id="gen-topic" placeholder="e.g. meeting reminders, invoices, promotions..." autocomplete="off">
         </div>
-        <div class="button-group secondary-actions">
-          <button type="button" id="btn-generate-inbox" class="btn btn-outline" title="Generate 50 realistic inbox subjects">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><path d="M6 6l12 12M18 6l-12 12"/></svg>
-            Generate Inbox (50)
-          </button>
-          <button type="button" id="btn-example" class="btn btn-outline" title="Load example subjects">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            Load Example
-          </button>
-          <button type="button" id="btn-import-txt" class="btn btn-outline" title="Import TXT file">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
-            Import TXT
-          </button>
-          <button type="button" id="btn-import-csv" class="btn btn-outline" title="Import CSV file">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
-            Import CSV
-          </button>
-          <button type="button" id="btn-import-json" class="btn btn-outline" title="Import JSON file">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-            Import JSON
-          </button>
-        </div>
-      </div>
 
-      <div class="shortcut-hint">
-        <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to analyze
-      </div>
-      </div>
-
-      <!-- Generate Mode -->
-      <div id="generate-content" style="display:none;">
-        <div class="generate-form">
+        <div class="gen-row">
           <div class="gen-field">
-            <label for="gen-topic">Topic</label>
-            <input type="text" id="gen-topic" placeholder="e.g. meeting reminders, invoices, promotions..." autocomplete="off">
+            <label for="gen-count">Count</label>
+            <input type="number" id="gen-count" value="10" min="1" max="50">
           </div>
-          <div class="gen-row">
-            <div class="gen-field gen-count-field">
-              <label for="gen-count">Count</label>
-              <input type="number" id="gen-count" value="5" min="1" max="20">
-            </div>
-            <div class="gen-field gen-tone-field">
-              <label for="gen-tone">Tone</label>
-              <select id="gen-tone">
-                <option value="professional">Professional</option>
-                <option value="casual">Casual</option>
-                <option value="urgent">Urgent</option>
-                <option value="friendly">Friendly</option>
-                <option value="formal">Formal</option>
-              </select>
-            </div>
+          <div class="gen-field">
+            <label for="gen-tone">Tone</label>
+            <select id="gen-tone">
+              <option value="professional">Professional</option>
+              <option value="casual">Casual</option>
+              <option value="urgent">Urgent</option>
+              <option value="friendly">Friendly</option>
+              <option value="formal">Formal</option>
+            </select>
           </div>
-          <button type="button" id="btn-generate" class="btn btn-primary">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><path d="M6 6l12 12M18 6l-12 12"/></svg>
-            Generate Subjects
-          </button>
-          <p class="gen-hint">Generated subjects will appear below. Then switch to Analyze to categorize them.</p>
+          <div class="gen-field">
+            <label for="gen-length">Length</label>
+            <select id="gen-length">
+              <option value="short">Short</option>
+              <option value="medium" selected>Medium</option>
+              <option value="long">Long</option>
+            </select>
+          </div>
         </div>
+
+        <label class="gen-checkbox">
+          <input type="checkbox" id="gen-emoji">
+          <span class="check-box">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span>Include emojis</span>
+        </label>
+
+        <button type="button" id="btn-generate" class="btn btn-primary btn-generate">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><path d="M6 6l12 12M18 6l-12 12"/></svg>
+          Generate Subjects
+        </button>
       </div>
     </section>
 
-    <!-- RIGHT PANEL: Output -->
-    <section class="panel output-panel glass">
-      <!-- Empty State -->
-      <div id="empty-state" class="empty-state">
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon">
-          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-        </svg>
-        <h3>No analysis yet</h3>
-        <p>Paste email subjects and click <strong>Analyze Inbox</strong> to get started.</p>
+    <!-- Right: Results -->
+    <section class="panel glass">
+      <div class="panel-header">
+        <h2>Generated Subjects</h2>
+        <span class="subject-count" id="input-count">0 subjects</span>
       </div>
 
-      <!-- Results Container (hidden initially) -->
-      <div id="results-container" class="results-container" style="display: none;">
-        <!-- Summary Card -->
-        <div class="summary-card glass-inner">
-          <div class="summary-header">
-            <h2>Inbox Summary</h2>
-            <div class="summary-actions">
-              <button id="btn-collapse-all" class="text-btn" title="Collapse all categories">Collapse All</button>
-              <button id="btn-expand-all" class="text-btn" title="Expand all categories">Expand All</button>
-            </div>
-          </div>
-          <p id="summary-text" class="summary-text"></p>
-        </div>
+      <textarea id="subject-input" class="subject-textarea" placeholder="Generated subjects will appear here...&#10;&#10;Enter a topic and click Generate to start." rows="16"></textarea>
 
-        <!-- Statistics Row -->
-        <div class="stats-row">
-          <div class="stat-card glass-inner">
-            <div class="stat-value" id="stat-total">0</div>
-            <div class="stat-label">Total Subjects</div>
-          </div>
-          <div class="stat-card glass-inner">
-            <div class="stat-value" id="stat-categories">0</div>
-            <div class="stat-label">Categories</div>
-          </div>
-          <div class="stat-card glass-inner">
-            <div class="stat-value" id="stat-largest">-</div>
-            <div class="stat-label">Largest Category</div>
-          </div>
-          <div class="stat-card glass-inner">
-            <div class="stat-value" id="stat-time">-</div>
-            <div class="stat-label">Processing Time</div>
-          </div>
-        </div>
+      <div class="result-actions">
+        <button type="button" id="btn-copy" class="btn btn-outline">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy
+        </button>
+        <button type="button" id="btn-download" class="btn btn-outline">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download
+        </button>
+        <button type="button" id="btn-clear" class="btn btn-ghost">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Clear
+        </button>
+      </div>
 
-        <!-- Search Bar -->
-        <div class="search-bar glass-inner">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="search-input" placeholder="Search categories or subjects..." aria-label="Search categories and subjects">
-          <button id="search-clear" class="icon-btn search-clear-btn" title="Clear search" aria-label="Clear search" style="display:none;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>
-
-        <!-- Categories -->
-        <div id="categories-container" class="categories-container"></div>
-
-        <!-- JSON Preview -->
-        <div class="json-preview glass-inner">
-          <div class="json-header">
-            <h3>JSON Preview</h3>
-            <div class="json-actions">
-              <button id="btn-copy-json" class="text-btn" title="Copy JSON">Copy</button>
-              <button id="btn-toggle-json" class="text-btn" title="Toggle JSON view">Show</button>
-            </div>
-          </div>
-          <pre id="json-output" class="json-output" style="display: none;"></pre>
-        </div>
-
-        <!-- Download Buttons -->
-        <div class="download-bar">
-          <button id="btn-download-json" class="btn btn-outline btn-sm">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Download JSON
-          </button>
-          <button id="btn-download-txt" class="btn btn-outline btn-sm">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Download TXT
-          </button>
-          <button id="btn-download-csv" class="btn btn-outline btn-sm">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Download CSV
-          </button>
-          <button id="btn-download-md" class="btn btn-outline btn-sm">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Download MD
-          </button>
-        </div>
+      <div class="shortcut-hint">
+        <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to generate
       </div>
     </section>
   </main>
 
-  <!-- Loading Overlay -->
   <div id="loading-overlay" class="loading-overlay" aria-hidden="true">
     <div class="loader">
       <div class="loader-ring"></div>
     </div>
-    <p class="loader-text">Analyzing your inbox...</p>
-    <p class="loader-subtext" id="loader-subject-count"></p>
+    <p class="loader-text">Generating subjects...</p>
   </div>
 
   <script src="/app.js"></script>

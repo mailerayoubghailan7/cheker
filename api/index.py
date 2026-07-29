@@ -1,10 +1,9 @@
 """
-Email Subject Triage AI - FastAPI Backend
-Uses Groq API (Llama 3) for free email categorization.
+Email Subject Generator - FastAPI Backend
+Uses Groq API for generating email subjects.
 """
 
 import os
-import re
 import time
 import json
 from collections import defaultdict
@@ -13,13 +12,13 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
 from groq import Groq
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
-app = FastAPI(title="Email Triage AI API", version="1.0.0")
+app = FastAPI(title="Email Subject Generator API", version="2.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -33,7 +32,7 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
 RATE_LIMIT_WINDOW = 60
-RATE_LIMIT_MAX = 8
+RATE_LIMIT_MAX = 10
 _rate_store: dict[str, list[float]] = defaultdict(list)
 
 
@@ -46,160 +45,12 @@ def check_rate_limit(ip: str) -> bool:
     return True
 
 
-class AnalyzeRequest(BaseModel):
-    subjects: list[str] = Field(..., min_length=1, max_length=2000)
-
-    @field_validator("subjects", mode="before")
-    @classmethod
-    def clean_subjects(cls, v: list) -> list:
-        cleaned = []
-        for item in v:
-            if isinstance(item, str):
-                s = item.strip()
-                if s:
-                    cleaned.append(s[:200])
-        if not cleaned:
-            raise ValueError("No valid non-empty subjects provided")
-        return cleaned
-
-
 class GenerateRequest(BaseModel):
     topic: str = Field(..., min_length=1, max_length=200)
-    count: int = Field(default=5, ge=1, le=20)
+    count: int = Field(default=10, ge=1, le=50)
     tone: str = Field(default="professional")
-
-
-_TAG_RE = re.compile(r"<[^>]+>")
-
-
-def sanitize(text: str) -> str:
-    text = _TAG_RE.sub("", text)
-    text = re.sub(r"\s+", " ", text).strip()
-    return text[:200]
-
-
-SYSTEM_PROMPT = """You are a precise email triage assistant.
-Categorize email subjects and return a concise structured summary.
-Always return only valid JSON, no markdown fences, no extra text."""
-
-
-def build_user_prompt(subjects: list[str]) -> str:
-    count = len(subjects)
-    subject_list = "\n".join(f"  {i+1}. {s}" for i, s in enumerate(subjects))
-    return f"""Analyze the following email subject lines.
-Group them into sensible categories such as:
-Urgent, Work, Newsletters, Notifications, Personal, Finance,
-Shopping, Travel, Security, Promotions, Updates, Other.
-
-There are {count} emails.
-
-Subjects:
-{subject_list}
-
-Return only valid JSON in this exact format:
-{{
-  "summary": "A short overview of the inbox in 1-2 sentences",
-  "categories": [
-    {{
-      "name": "CategoryName",
-      "subjects": ["Subject 1", "Subject 2"]
-    }}
-  ]
-}}
-
-Rules:
-- summary must be a concise 1-2 sentence overview
-- categories must be ordered by number of subjects (largest first)
-- use only these category names when applicable: Urgent, Work, Newsletters, Notifications, Personal, Finance, Shopping, Travel, Security, Promotions, Updates, Other
-- every subject must appear in exactly one category
-- subjects within each category should preserve their original text
-- return ONLY the JSON object, no markdown fences, no explanation"""
-
-
-def call_groq(subjects: list[str]) -> dict:
-    if client is None:
-        raise HTTPException(
-            status_code=500,
-            detail="Groq API key is not configured. Set GROQ_API_KEY in Vercel dashboard (Settings > Environment Variables) or in a .env file for local dev.",
-        )
-
-    user_prompt = build_user_prompt(subjects)
-
-    try:
-        response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_prompt},
-            ],
-            temperature=0.3,
-            max_tokens=4000,
-        )
-
-        output_text = response.choices[0].message.content.strip()
-
-        if output_text.startswith("```"):
-            lines = output_text.split("\n")
-            if lines[-1].strip() == "```":
-                lines = lines[1:-1]
-            elif lines[0].strip().startswith("```"):
-                lines = lines[1:]
-            output_text = "\n".join(lines).strip()
-
-        result = json.loads(output_text)
-
-        if "summary" not in result or "categories" not in result:
-            raise ValueError("Response missing required fields: summary, categories")
-
-        if not isinstance(result["categories"], list):
-            raise ValueError("categories must be an array")
-
-        cleaned_categories = []
-        for cat in result["categories"]:
-            if not isinstance(cat, dict):
-                continue
-            name = str(cat.get("name", "Other")).strip()
-            raw_subjects = cat.get("subjects", [])
-            if not isinstance(raw_subjects, list):
-                raw_subjects = []
-            cleaned_subjects = [str(s).strip() for s in raw_subjects if s]
-            if cleaned_subjects:
-                cleaned_categories.append({
-                    "name": name,
-                    "subjects": cleaned_subjects,
-                })
-
-        return {
-            "summary": str(result["summary"]).strip(),
-            "categories": cleaned_categories,
-        }
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"AI API error: {str(e)}",
-        )
-
-
-@app.post("/api/analyze")
-async def analyze(request: Request, body: AnalyzeRequest):
-    client_ip = request.client.host if request.client else "unknown"
-    if not check_rate_limit(client_ip):
-        raise HTTPException(
-            status_code=429,
-            detail="Too many requests. Please wait a moment before trying again.",
-        )
-
-    subjects = [sanitize(s) for s in body.subjects]
-    subjects = [s for s in subjects if s]
-
-    if not subjects:
-        raise HTTPException(status_code=400, detail="No valid subjects provided after sanitization.")
-
-    result = call_groq(subjects)
-    result["count"] = len(subjects)
-
-    return result
+    length: str = Field(default="medium")
+    emoji: bool = Field(default=False)
 
 
 @app.post("/api/generate")
@@ -211,11 +62,20 @@ async def generate(request: Request, body: GenerateRequest):
     if client is None:
         raise HTTPException(
             status_code=500,
-            detail="Groq API key is not configured. Set GROQ_API_KEY in Vercel dashboard (Settings > Environment Variables) or in a .env file for local dev.",
+            detail="Groq API key not configured. Set GROQ_API_KEY in Vercel dashboard (Settings > Environment Variables) or in a .env file for local dev.",
         )
 
+    length_desc = {
+        "short": "short and concise (2-5 words)",
+        "medium": "medium-length (5-10 words)",
+        "long": "long and descriptive (10-20 words)",
+    }
+    emoji_req = "Include relevant emojis in some of the subjects." if body.emoji else "Do not use any emojis."
+
     prompt = f"""Generate {body.count} email subject lines about "{body.topic}" with a {body.tone} tone.
-Return ONLY a valid JSON array of strings, no markdown fences, no explanation.
+Each subject should be {length_desc.get(body.length, 'medium-length (5-10 words)')}.
+{emoji_req}
+Return ONLY a valid JSON array of strings, no markdown fences.
 Example format: ["Subject 1", "Subject 2", "Subject 3"]"""
 
     try:
@@ -226,7 +86,7 @@ Example format: ["Subject 1", "Subject 2", "Subject 3"]"""
                 {"role": "user", "content": prompt},
             ],
             temperature=0.7,
-            max_tokens=1000,
+            max_tokens=2000,
         )
 
         output_text = response.choices[0].message.content.strip()
