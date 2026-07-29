@@ -69,6 +69,7 @@
     fileInput: $('#file-input'),
     btnAnalyze: $('#btn-analyze'),
     btnClear: $('#btn-clear'),
+    btnGenerateInbox: $('#btn-generate-inbox'),
     btnExample: $('#btn-example'),
     btnImportTxt: $('#btn-import-txt'),
     btnImportCsv: $('#btn-import-csv'),
@@ -631,6 +632,48 @@
   }
 
   /* =========================================================================
+     Generate Inbox (50 subjects)
+     ========================================================================= */
+  async function generateInbox() {
+    dom.btnGenerateInbox.disabled = true;
+    dom.btnGenerateInbox.textContent = 'Generating...';
+
+    try {
+      var response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: 'realistic Gmail inbox: work emails, newsletters, promotions, notifications, security alerts, social media, receipts, travel confirmations, meeting invites',
+          count: 50,
+          tone: 'professional',
+        }),
+      });
+
+      var result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.detail || result.error || 'Generation failed');
+      }
+
+      var subjects = result.subjects || [];
+      if (subjects.length === 0) {
+        showToast('No subjects generated. Try again.', 'warning');
+        return;
+      }
+
+      dom.subjectInput.value = subjects.join('\n');
+      updateInputCount();
+      localStorage.setItem(STORAGE_KEYS.subjects, dom.subjectInput.value);
+      showToast('Generated ' + subjects.length + ' inbox subjects', 'success');
+    } catch (err) {
+      showToast(err.message || 'Generation failed.', 'error');
+    } finally {
+      dom.btnGenerateInbox.disabled = false;
+      dom.btnGenerateInbox.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><path d="M6 6l12 12M18 6l-12 12"/></svg> Generate Inbox (50)';
+    }
+  }
+
+  /* =========================================================================
      Restore from localStorage
      ========================================================================= */
   function restoreState() {
@@ -668,6 +711,7 @@
     // Buttons
     dom.btnAnalyze.addEventListener('click', analyzeSubjects);
     dom.btnClear.addEventListener('click', clearAll);
+    dom.btnGenerateInbox.addEventListener('click', generateInbox);
     dom.btnExample.addEventListener('click', loadExample);
 
     // Mode tabs
