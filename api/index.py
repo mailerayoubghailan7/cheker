@@ -120,7 +120,7 @@ def call_groq(subjects: list[str]) -> dict:
     if client is None:
         raise HTTPException(
             status_code=500,
-            detail="Groq API key is not configured. Please set GROQ_API_KEY.",
+            detail="Groq API key is not configured. Set GROQ_API_KEY in Vercel dashboard (Settings > Environment Variables) or in a .env file for local dev.",
         )
 
     user_prompt = build_user_prompt(subjects)
@@ -211,7 +211,7 @@ async def generate(request: Request, body: GenerateRequest):
     if client is None:
         raise HTTPException(
             status_code=500,
-            detail="Groq API key is not configured. Please set GROQ_API_KEY.",
+            detail="Groq API key is not configured. Set GROQ_API_KEY in Vercel dashboard (Settings > Environment Variables) or in a .env file for local dev.",
         )
 
     prompt = f"""Generate {body.count} email subject lines about "{body.topic}" with a {body.tone} tone.
